@@ -1,14 +1,14 @@
 {
-  "name": "YTExpressApp",
+  "name": "youtube-offline-viewer",
   "version": "1.0.0",
   "description": "Download and view youtube videos",
   "main": "main.js",
   "author": "Wisse Hes/TheChicken14",
   "license": "MIT",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "data-store": "^4.0.3",
     "express": "^4.17.1",
-    "express-handlebars": "^5.1.0",
     "ytdl-core": "^3.2.0"
   }
 }

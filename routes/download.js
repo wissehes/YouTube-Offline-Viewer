@@ -4,20 +4,32 @@ const store = require("data-store")({
     name: "videos",
     path: "./.config/videos.json",
 });
+const ytdl = require("ytdl-core")
+const fs = require("fs");
+
 
 router.post("/", (req, res) => {
+    console.log(req.body)
     const { video } = req.body;
     if (/(?:[?&]v=|\/embed\/|\/1\/|\/v\/|https:\/\/(?:www\.)?youtu\.be\/)([^&\n?#]+)/g.test(video)) {
         try {
-            const dVideo = ytdl(key, { quality: "highestvideo", filter: format => format.container === 'mp4' })
-            dVideo.pipe(fs.createWriteStream(`./videos/video_${key}.mp4`));
+            const dVideo = ytdl(video, { quality: "highest", filter: format => format.container === 'mp4' })
             dVideo.on("info", info => {
-                store.set(key, {
-                    id: key,
+                const id = info.videoDetails.videoId
+                dVideo.pipe(fs.createWriteStream(`./videos/video_${id}.mp4`));
+                store.set(id, {
+                    id: id,
                     downloaded: false,
                     title: info.videoDetails.title,
                     author: info.videoDetails.author,
                     thumbnails: info.videoDetails.thumbnail.thumbnails
+                })
+                dVideo.on("end", _ => {
+                    if (store.has(id)) {
+                        const vid = store.get(id)
+                        vid.downloaded = true
+                        store.set(id, vid)
+                    }
                 })
                 res.json({
                     message: "Successfully started downloading video",
@@ -29,13 +41,6 @@ router.post("/", (req, res) => {
             //     console.log("total bytes", _1)
             //     console.log("total bytes", _2)
             // })
-            dVideo.on("end", _ => {
-                if (store.has(key)) {
-                    const vid = store.get(key)
-                    vid.downloaded = true
-                    store.set(key, vid)
-                }
-            })
         } catch (e) {
             console.log(e)
             res.status(404).json({

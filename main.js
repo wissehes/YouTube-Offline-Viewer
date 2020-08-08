@@ -4,22 +4,29 @@ const store = require("data-store")({
     path: "./.config/videos.json",
 });
 const express = require("express");
+const bodyParser = require('body-parser')
 const app = express();
-const exphbs = require('express-handlebars');
-const ytdl = require("ytdl-core");
 const fs = require("fs");
 
-const hbs = exphbs.create({
-    // Specify helpers which are only registered on this instance.
-    helpers: {
-        getThumbnail: function (video) { return video.thumbnails[video.thumbnails.length - 1].url }
-    }
+app.use(bodyParser.json({ extended: true }))
+
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
 });
 
-app.engine('handlebars', hbs.engine);
-app.set('view engine', 'handlebars');
-
-app.use(express.static('./public'))
+if (!config.dev) {
+    if (fs.existsSync("./client/dist")) {
+        app.use(express.static('./client/dist'))
+    } else {
+        console.log("You must build the front-end first by doing the following:")
+        console.log("cd client")
+        console.log("yarn")
+        console.log("yarn build")
+        return;
+    }
+}
 
 // Initialize by looking up all the routes and using them
 fs.readdir("./routes/", (err, files) => {
@@ -30,38 +37,6 @@ fs.readdir("./routes/", (err, files) => {
         app.use(route.path, route.router)
     });
 });
-
-// app.get("/download/:key", async (req, res) => {
-//     const { key } = req.params;
-//     try {
-//         const dVideo = ytdl(key, { quality: "highestvideo", filter: format => format.container === 'mp4' })
-//         dVideo.pipe(fs.createWriteStream(`./videos/video_${key}.mp4`));
-//         dVideo.on("info", info => {
-//             store.set(key, {
-//                 id: key,
-//                 title: info.videoDetails.title,
-//                 author: info.videoDetails.author,
-//                 thumbnails: info.videoDetails.thumbnail.thumbnails
-//             })
-//         })
-//         dVideo.on("progress", (_, _1, _2) => {
-//             console.log("chunk byte", _)
-//             console.log("total bytes", _1)
-//             console.log("total bytes", _2)
-//         })
-//         dVideo.on("end", _ => {
-//             res.json({
-//                 message: "Successfully downloaded video",
-//                 success: true
-//             })
-//         })
-//     } catch (e) {
-//         console.log(e)
-//         res.status(404).json({
-//             error: "Video not found",
-//         })
-//     }
-// });
 
 app.get("/view/:id", (req, res) => {
     const { id } = req.params;
@@ -79,8 +54,10 @@ app.get("/view/:id", (req, res) => {
         })
     }
 })
+
 app.get("/api/videos", (req, res) => {
-    res.json(store.data)
+    store.load()
+    res.json(Object.values(store.data))
 })
 
 app.listen(config.web.port, () =>
