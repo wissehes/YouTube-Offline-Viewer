@@ -90,7 +90,7 @@
 
 <script>
 import axios from "axios";
-import VideoPlayer from "axios";
+import VideoPlayer from "../components/VideoPlayer";
 
 export default {
   name: "Home",
