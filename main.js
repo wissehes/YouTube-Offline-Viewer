@@ -12,7 +12,6 @@ const io = require('socket.io')(http);
 const bodyParser = require('body-parser')
 const fs = require("fs");
 
-
 app.use(bodyParser.json({ extended: true }))
 
 app.use(function (req, res, next) {
@@ -58,6 +57,12 @@ app.get("/view/:id", (req, res) => {
             error: "An error ocurred!"
         })
     }
+})
+
+io.on("connect", socket => {
+    socket.on("downlaod", video => {
+
+    })
 })
 
 app.get("/api/videos", (req, res) => {

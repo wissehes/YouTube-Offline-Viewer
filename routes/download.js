@@ -19,6 +19,7 @@ router.post("/", (req, res) => {
                 dVideo.pipe(fs.createWriteStream(`./videos/video_${id}.mp4`));
                 store.set(id, {
                     id: id,
+                    download_progress: 0,
                     downloaded: false,
                     title: info.videoDetails.title,
                     author: info.videoDetails.author,
@@ -36,11 +37,15 @@ router.post("/", (req, res) => {
                     success: true
                 })
             })
-            // dVideo.on("progress", (_, _1, _2) => {
-            //     console.log("chunk byte", _)
-            //     console.log("total bytes", _1)
-            //     console.log("total bytes", _2)
-            // })
+            dVideo.on("progress", (_, _1, _2) => {
+                console.log("chunk byte", _)
+                console.log("total bytes", _1)
+                console.log("total bytes", _2)
+                // const percentage = Math.round((_1 / _2) * 100)
+                // console.log(percentage)
+                //store.load()
+                //store.set(`${id}.download_progress`, percentage)
+            })
         } catch (e) {
             console.log(e)
             res.status(404).json({
