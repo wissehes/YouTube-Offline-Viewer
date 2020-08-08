@@ -1,6 +1,9 @@
 {
   "name": "youtube-offline-viewer",
   "version": "1.0.0",
+  "scripts": {
+    "start": "node main.js"
+  },
   "description": "Download and view youtube videos",
   "main": "main.js",
   "author": "Wisse Hes/TheChicken14",
