@@ -3,10 +3,15 @@ const store = require("data-store")({
     name: "videos",
     path: "./.config/videos.json",
 });
+
 const express = require("express");
-const bodyParser = require('body-parser')
 const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+
+const bodyParser = require('body-parser')
 const fs = require("fs");
+
 
 app.use(bodyParser.json({ extended: true }))
 
@@ -60,6 +65,6 @@ app.get("/api/videos", (req, res) => {
     res.json(Object.values(store.data))
 })
 
-app.listen(config.web.port, () =>
+http.listen(config.web.port, () =>
     console.log(`[WEB] App ready! Listening on port ${config.web.port}!`)
 );
