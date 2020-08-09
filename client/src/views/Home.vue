@@ -122,7 +122,7 @@ export default {
     loadVideos() {
       axios
         .get("/api/videos")
-        .then(r => (this.videos = r.data))
+        .then(r => (this.videos = r.data.reverse()))
         .finally(() => (this.loading = false));
     },
     showSnackbar(message, error = false) {
