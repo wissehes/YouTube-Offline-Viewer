@@ -41,6 +41,7 @@ fs.readdir("./routes/", (err, files) => {
 app.get("/view/:id", (req, res) => {
     const { id } = req.params;
     try {
+        store.load()
         if (store.has(id) && fs.existsSync(`./videos/video_${id}.mp4`)) {
             fs.createReadStream(`./videos/video_${id}.mp4`).pipe(res);
         } else {
