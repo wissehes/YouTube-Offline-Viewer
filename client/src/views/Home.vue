@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-container>
+    <v-container fluid>
       <div v-if="loading"></div>
       <div v-else>
         <v-container fluid>
@@ -36,7 +36,7 @@
         </v-container>
 
         <v-row>
-          <v-card v-if="videos == []" class="mx-auto mb-6" max-width="400">
+          <v-card v-if="videos == []" class="mx-auto" max-width="400">
             <v-card-title>No videos yet!</v-card-title>
           </v-card>
           <v-card
@@ -65,19 +65,8 @@
         </v-row>
       </div>
     </v-container>
-    <v-dialog v-model="videoDialog" fullscreen hide-overlay transition="dialog-bottom-transition">
-      <v-card>
-        <v-toolbar dark color="primary">
-          <v-btn icon dark @click="videoDialog = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-          <v-toolbar-title>Video</v-toolbar-title>
-          <v-spacer></v-spacer>
-        </v-toolbar>
-        <v-container>
-          <VideoPlayer v-if="videoDialog" :video="selectedVideo" />
-        </v-container>
-      </v-card>
+    <v-dialog v-model="videoDialog" width="800px">
+      <VideoPlayer v-if="showPlayer" :video="selectedVideo" height="100%" />
     </v-dialog>
     <v-snackbar v-model="snackbar" :color="snackbarError ? 'red' : 'primary'" :timeout="5000">
       {{ snackbarMessage }}
@@ -98,6 +87,7 @@ export default {
     videos: [],
     selectedVideo: {},
     videoDialog: false,
+    showPlayer: false,
     loading: true,
     youTubeURL: "",
     YTURLRules: [
@@ -111,6 +101,20 @@ export default {
     snackbarMessage: "",
     snackbarError: false
   }),
+  created() {
+    this.loadVideos();
+  },
+  watch: {
+    videoDialog(v) {
+      if (v) {
+        this.showPlayer = true;
+      } else {
+        setTimeout(() => {
+          this.showPlayer = false;
+        }, 500);
+      }
+    }
+  },
   components: {
     VideoPlayer
   },
@@ -151,9 +155,6 @@ export default {
         }
       }
     }
-  },
-  created() {
-    this.loadVideos();
   }
 };
 </script>
