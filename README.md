@@ -42,4 +42,4 @@ Thats all!
 ## Usage
 
 To start the server, run `yarn start`, or `npm run start`.
-Now navigate to `localhost:8080` (or whatever port you set in the config) and you will be able to download videos!
+Now navigate to `localhost:8000` (or whatever port you set in the config) and you will be able to download videos!
