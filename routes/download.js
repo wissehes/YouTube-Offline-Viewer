@@ -19,6 +19,7 @@ router.post("/", (req, res) => {
                 dVideo.pipe(fs.createWriteStream(`./videos/video_${id}.mp4`));
                 store.set(id, {
                     id: id,
+                    timestamp: new Date(),
                     downloaded: false,
                     title: info.videoDetails.title,
                     author: info.videoDetails.author,
