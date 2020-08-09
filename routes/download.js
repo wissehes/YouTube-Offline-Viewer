@@ -20,6 +20,7 @@ router.post("/", (req, res) => {
                 store.set(id, {
                     id: id,
                     timestamp: new Date(),
+                    playing_progress: 0,
                     downloaded: false,
                     title: info.videoDetails.title,
                     author: info.videoDetails.author,
@@ -36,12 +37,19 @@ router.post("/", (req, res) => {
                     message: "Successfully started downloading video",
                     success: true
                 })
+                console.log(`Downloading ${info.videoDetails.title}...`)
             })
             // dVideo.on("progress", (_, _1, _2) => {
             //     console.log("chunk byte", _)
             //     console.log("total bytes", _1)
             //     console.log("total bytes", _2)
             // })
+            let starttime = Date.now()
+            dVideo.on('progress', (chunkLength, downloaded, total) => {
+                const percent = downloaded / total;
+                console.log(`${(percent * 100).toFixed(2)}% downloaded `);
+                console.log(`(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(total / 1024 / 1024).toFixed(2)}MB)\n`);
+            });
         } catch (e) {
             console.log(e)
             res.status(404).json({
