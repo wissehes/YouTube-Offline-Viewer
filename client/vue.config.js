@@ -18,6 +18,12 @@ module.exports = {
         secure: false,
         ws: true
       },
+      "/socket.io/": {
+        //web sockets
+        target: "http://localhost:8000/socket.io/",
+        secure: false,
+        ws: true
+      },
       "!/": {
         //except root, which is served by webpack's devserver, to faciliate instant updates
         target: "http://localhost:8000/",
