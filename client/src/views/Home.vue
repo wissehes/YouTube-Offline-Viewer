@@ -60,6 +60,10 @@
 
             <v-card-actions>
               <v-btn color="orange" @click="playVideo(video)" text>Play</v-btn>
+              <v-spacer></v-spacer>
+              <v-btn class="mx-2" fab dark small color="error">
+                <v-icon dark>mdi-close</v-icon>
+              </v-btn>
             </v-card-actions>
           </v-card>
         </v-row>
