@@ -47,7 +47,11 @@
             max-width="400"
             :loading="!video.downloaded"
             :disabled="!video.downloaded"
+            :progress="50"
           >
+            <template v-slot:progress>
+              <v-progress-linear :value="video.download_progress"></v-progress-linear>
+            </template>
             <v-img
               class="white--text align-end"
               height="200px"
@@ -82,8 +86,8 @@
 </template>
 
 <script>
-import axios from "axios";
 import VideoPlayer from "../components/VideoPlayer";
+import io from "socket.io-client";
 
 export default {
   name: "Home",
@@ -103,10 +107,15 @@ export default {
     ],
     snackbar: false,
     snackbarMessage: "",
-    snackbarError: false
+    snackbarError: false,
+    io: {}
   }),
-  created() {
-    this.loadVideos();
+  mounted() {
+    this.io = io();
+    this.io.on("videos", data => {
+      this.loading = false;
+      this.videos = data.reverse();
+    });
   },
   watch: {
     videoDialog(v) {
@@ -124,10 +133,7 @@ export default {
   },
   methods: {
     loadVideos() {
-      axios
-        .get("/api/videos")
-        .then(r => (this.videos = r.data.reverse()))
-        .finally(() => (this.loading = false));
+      this.io.emit("getVideos");
     },
     showSnackbar(message, error = false) {
       if (error) {
@@ -147,15 +153,9 @@ export default {
     downloadVideo() {
       if (this.$refs.form.validate()) {
         if (this.youTubeURL.trim() !== "") {
-          axios
-            .post("/api/download", {
-              video: this.youTubeURL
-            })
-            .then(() => {
-              this.showSnackbar("Started downloading video!");
-              this.youTubeURL = "";
-              this.loadVideos();
-            });
+          this.io.emit("download", this.youTubeURL);
+          this.showSnackbar("Started downloading video!");
+          this.youTubeURL = "";
         }
       }
     }

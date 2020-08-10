@@ -3,12 +3,21 @@ const store = require("data-store")({
     name: "videos",
     path: "./.config/videos.json",
 });
-const express = require("express");
-const bodyParser = require('body-parser')
-const app = express();
 const fs = require("fs");
+const http = require("http");
+
+const express = require("express");
+const app = express();
+
+const server = http.createServer(app)
+
+const io = require('socket.io')(server);
+
+const bodyParser = require('body-parser')
 
 app.use(bodyParser.json({ extended: true }))
+
+const downloadViaSocket = require("./functions/SocketDownloadVideo")
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -61,6 +70,20 @@ app.get("/api/videos", (req, res) => {
     res.json(Object.values(store.data))
 })
 
-app.listen(config.web.port, () =>
+io.on('connect', socket => {
+    store.load()
+    socket.emit("videos", Object.values(store.data))
+    socket.on("getVideos", () => {
+        store.load()
+        socket.emit("videos", Object.values(store.data))
+    })
+    socket.on("download", video => {
+        if (video) {
+            downloadViaSocket(video, io)
+        }
+    })
+})
+
+server.listen(config.web.port, () =>
     console.log(`[WEB] App ready! Listening on port ${config.web.port}!`)
 );

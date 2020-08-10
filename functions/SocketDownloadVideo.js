@@ -1,5 +1,3 @@
-const express = require('express')
-const router = express.Router()
 const store = require("data-store")({
     name: "videos",
     path: "./.config/videos.json",
@@ -8,9 +6,7 @@ const ytdl = require("ytdl-core")
 const fs = require("fs");
 
 
-router.post("/", (req, res) => {
-    console.log(req.body)
-    const { video } = req.body;
+module.exports = (video, socket) => {
     if (/(?:[?&]v=|\/embed\/|\/1\/|\/v\/|https:\/\/(?:www\.)?youtu\.be\/)([^&\n?#]+)/g.test(video)) {
         try {
             const dVideo = ytdl(video, { quality: "highest", filter: format => format.container === 'mp4' })
@@ -27,40 +23,38 @@ router.post("/", (req, res) => {
                     author: info.videoDetails.author,
                     thumbnails: info.videoDetails.thumbnail.thumbnails
                 })
+                let progress = 0;
                 dVideo.on('progress', (chunkLength, downloaded, total) => {
-                    const percent = downloaded / total;
-                    console.log(`${(percent * 100).toFixed(2)}% downloaded of ${info.videoDetails.title}`);
-                    // console.log(`(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(total / 1024 / 1024).toFixed(2)}MB)\n`);
-                    store.load()
-                    store.set(`${id}.download_progress`, percent * 100)
+                    const percent = Math.round((downloaded / total) * 100)
+                    if (progress != percent) {
+                        progress = percent;
+                        console.log(`${(percent).toFixed(2)}% downloaded of ${info.videoDetails.title}`);
+                        store.load()
+                        store.set(`${id}.download_progress`, percent)
+                        socket.emit("videos", Object.values(store.data))
+                    }
+                    //console.log(`(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(total / 1024 / 1024).toFixed(2)}MB)\n`);
                 });
                 dVideo.on("end", _ => {
                     store.load()
                     if (store.has(id)) {
-                        store.load()
-                        store.set(`${id}.downloaded`, true)
+                        const vid = store.get(id)
+                        vid.downloaded = true
+                        store.set(id, vid)
+                        socket.emit("videos", Object.values(store.data))
                     }
-                })
-                res.json({
-                    message: "Successfully started downloading video",
-                    success: true
                 })
                 console.log(`Downloading ${info.videoDetails.title}...`)
             })
         } catch (e) {
             console.log(e)
-            res.status(404).json({
+            socket.emit("error", {
                 error: "Video not found",
             })
         }
     } else {
-        res.status(400).json({
+        socket.emit("error", {
             error: "Invalid URL!"
         })
     }
-})
-
-module.exports = {
-    path: "/api/download",
-    router
 }
