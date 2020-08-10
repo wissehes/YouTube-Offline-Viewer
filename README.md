@@ -2,6 +2,10 @@
 
 View YouTube videos offline!
 
+## To-do:
+* [ ] Add info dialog
+* [ ] Add confirm dialog when clicking delete button
+
 ## Setup
 
 ### Cloning
@@ -12,7 +16,7 @@ Clone the repository by using `git`:
 $ git clone https://github.com/TheChicken14/YouTube-Offline-Viewer.git
 ```
 
-Or by downloading the zip file:
+Or by downloading the zip file: <br>
 ![download image with zip file option](https://i.imgur.com/nEUzFJ4.png)
 
 ### Installing dependencies
