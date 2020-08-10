@@ -18,6 +18,7 @@ const bodyParser = require('body-parser')
 app.use(bodyParser.json({ extended: true }))
 
 const downloadViaSocket = require("./functions/SocketDownloadVideo")
+const deleteVideo = require("./functions/DeleteVideo")
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -81,6 +82,11 @@ io.on('connect', socket => {
         if (video) {
             downloadViaSocket(video, io)
         }
+    })
+    socket.on("delete", async id => {
+        await deleteVideo(id)
+        store.load()
+        socket.emit("videos", Object.values(store.data))
     })
 })
 
