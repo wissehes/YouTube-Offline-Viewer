@@ -50,14 +50,16 @@
             :progress="50"
           >
             <template v-slot:progress>
-              <v-progress-linear :value="video.download_progress"></v-progress-linear>
+              <v-progress-linear
+                :value="video.download_progress"
+              ></v-progress-linear>
             </template>
             <v-img
               class="white--text align-end"
               height="200px"
               :src="video.thumbnails[video.thumbnails.length - 1].url"
             >
-              <v-card-title>{{video.title}}</v-card-title>
+              <v-card-title>{{ video.title }}</v-card-title>
             </v-img>
 
             <!-- <v-card-subtitle class="pb-0">size</v-card-subtitle> -->
@@ -65,7 +67,14 @@
             <v-card-actions>
               <v-btn color="orange" @click="playVideo(video)" text>Play</v-btn>
               <v-spacer></v-spacer>
-              <v-btn class="mx-2" fab dark small color="error">
+              <v-btn
+                class="mx-2"
+                fab
+                dark
+                small
+                color="error"
+                @click="deleteVideo(video.id)"
+              >
                 <v-icon dark>mdi-close</v-icon>
               </v-btn>
             </v-card-actions>
@@ -76,7 +85,11 @@
     <v-dialog v-model="videoDialog" width="800px">
       <VideoPlayer v-if="showPlayer" :video="selectedVideo" height="100%" />
     </v-dialog>
-    <v-snackbar v-model="snackbar" :color="snackbarError ? 'red' : 'primary'" :timeout="5000">
+    <v-snackbar
+      v-model="snackbar"
+      :color="snackbarError ? 'red' : 'primary'"
+      :timeout="5000"
+    >
       {{ snackbarMessage }}
       <template v-slot:action="{ attrs }">
         <v-btn text v-bind="attrs" @click="snackbar = false">Close</v-btn>
@@ -158,6 +171,9 @@ export default {
           this.youTubeURL = "";
         }
       }
+    },
+    deleteVideo(id) {
+      this.io.emit("delete", id);
     }
   }
 };
