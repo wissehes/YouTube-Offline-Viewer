@@ -3,7 +3,7 @@ const router = express.Router()
 
 router.get("/", (req, res) => {
     res.json({
-        satus: "online",
+        status: "online",
         time: Date.now(),
         serverType: "YouTube Offline Downloader"
     })
