@@ -26,7 +26,8 @@ app.use(function (req, res, next) {
     next();
 });
 
-if (!config.dev) {
+if (!config.dev || process.argv[2] == "-prod") {
+    config.dev = false
     if (fs.existsSync("./client/dist")) {
         process.env.NODE_ENV = "production"
         app.use(express.static('./client/dist'))
@@ -119,6 +120,8 @@ io.on('connect', socket => {
     })
 })
 
-server.listen(config.web.port, () =>
-    console.log(`[WEB] App ready! Listening on port ${config.web.port}!`)
-);
+server.listen(config.web.port, () => {
+    console.log(`[WEB] App ready in ${config.dev ? 'developer' : 'production'} mode! Listening on port ${config.web.port}!`)
+    if (!config.dev)
+        require('open')(`http://localhost:${config.web.port}`)
+});
