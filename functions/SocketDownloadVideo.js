@@ -12,6 +12,9 @@ module.exports = (video, socket) => {
             const dVideo = ytdl(video, { quality: "highest", filter: format => format.container === 'mp4' })
             dVideo.on("info", info => {
                 const id = info.videoDetails.videoId
+                if (!fs.existsSync("./videos/")) {
+                    fs.mkdirSync("./videos")
+                }
                 dVideo.pipe(fs.createWriteStream(`./videos/video_${id}.mp4`));
                 store.set(id, {
                     id: id,
