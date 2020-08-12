@@ -1,9 +1,20 @@
 <template>
-  <div>
+  <v-sheet>
+    <v-list-item>
+      <v-list-item-avatar>
+        <v-avatar>
+          <v-img :src="video.author.avatar"></v-img>
+        </v-avatar>
+      </v-list-item-avatar>
+      <v-list-item-content>
+        <v-list-item-title class="headline">{{ video.title }}</v-list-item-title>
+        <v-list-item-subtitle>{{video.author.name}}</v-list-item-subtitle>
+      </v-list-item-content>
+    </v-list-item>
     <VuePlyr class="video" :options="options" ref="player">
       <video :src="videoURL" :poster="poster"></video>
     </VuePlyr>
-  </div>
+  </v-sheet>
 </template>
 
 <script>
