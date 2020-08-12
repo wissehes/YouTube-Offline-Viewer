@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-sheet>
     <v-container fluid>
       <div v-if="loading"></div>
       <div v-else>
@@ -96,7 +96,7 @@
         <v-btn text v-bind="attrs" @click="snackbar = false">Close</v-btn>
       </template>
     </v-snackbar>
-  </div>
+  </v-sheet>
 </template>
 
 <script>
