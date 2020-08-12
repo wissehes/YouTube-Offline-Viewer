@@ -51,9 +51,9 @@
             <template v-slot:progress>
               <v-progress-linear
                 :value="video.download_progress"
-                v-if="video.download_progress < 1"
+                v-if="video.download_progress > 1"
               ></v-progress-linear>
-              <v-progress-linear v-else />
+              <v-progress-linear v-else indeterminate />
             </template>
             <v-list-item>
               <v-list-item-avatar>
