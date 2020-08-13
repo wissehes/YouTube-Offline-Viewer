@@ -9,6 +9,7 @@
   "author": "Wisse Hes/TheChicken14",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "data-store": "^4.0.3",
     "express": "^4.17.1",
