@@ -69,10 +69,15 @@
             <v-img
               class="white--text align-end"
               height="200px"
+              v-if="video.thumbnail"
+              :src="video.thumbnail"
+            ></v-img>
+            <v-img
+              class="white--text align-end"
+              height="200px"
+              v-else
               :src="video.thumbnails[video.thumbnails.length - 1].url"
-            >
-              <v-card-title></v-card-title>
-            </v-img>
+            ></v-img>
 
             <!-- <v-card-subtitle class="pb-0">size</v-card-subtitle> -->
 
