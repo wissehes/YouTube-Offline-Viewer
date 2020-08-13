@@ -20,6 +20,7 @@ app.use(bodyParser.json({ extended: true }))
 const deleteVideo = require("./functions/DeleteVideo")
 const download = require("./functions/DownloadVideo")
 
+
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -98,7 +99,17 @@ app.get("/view/:id", (req, res) => {
 
 app.get("/api/videos", (req, res) => {
     store.load()
-    res.json(Object.values(store.data))
+    const baseURL = req.protocol + '://' + req.get('host')
+    const videos = Object.values(store.data)
+    res.json(videos.map(v => {
+        if (v.thumbnail) {
+            v.thumbnail = baseURL + v.thumbnail
+            v.author.avatar = baseURL + v.author.avatar
+            return v
+        } else {
+            return v
+        }
+    }))
 })
 
 io.on('connect', socket => {
