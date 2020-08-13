@@ -121,5 +121,8 @@ dist
 # Videos directory
 videos/
 
+# Images directory
+images/
+
 # macOS
 .DS_Store
