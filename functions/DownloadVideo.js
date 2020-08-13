@@ -6,7 +6,13 @@ const ytdl = require("ytdl-core")
 const fs = require("fs");
 
 
-module.exports = (video, socket) => {
+module.exports = (video, options = { viaSocket: false, express: false, req: null, res: null, socket: null }) => {
+    const {
+        viaSocket,
+        res,
+        req,
+        socket
+    } = options
     if (/(?:[?&]v=|\/embed\/|\/1\/|\/v\/|https:\/\/(?:www\.)?youtu\.be\/)([^&\n?#]+)/g.test(video)) {
         try {
             const dVideo = ytdl(video, { quality: "highest", filter: format => format.container === 'mp4' })
@@ -26,6 +32,12 @@ module.exports = (video, socket) => {
                     author: info.videoDetails.author,
                     thumbnails: info.videoDetails.thumbnail.thumbnails
                 })
+                if (!viaSocket) {
+                    res.json({
+                        message: "Successfully started downloading video",
+                        success: true
+                    })
+                }
                 let progress = 0;
                 dVideo.on('progress', (chunkLength, downloaded, total) => {
                     const percent = Math.round((downloaded / total) * 100)
@@ -34,9 +46,10 @@ module.exports = (video, socket) => {
                         console.log(`${(percent).toFixed(2)}% downloaded of ${info.videoDetails.title}`);
                         store.load()
                         store.set(`${id}.download_progress`, percent)
-                        socket.emit("videos", Object.values(store.data))
+                        if (viaSocket) {
+                            socket.emit("videos", Object.values(store.data))
+                        }
                     }
-                    //console.log(`(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(total / 1024 / 1024).toFixed(2)}MB)\n`);
                 });
                 dVideo.on("end", _ => {
                     store.load()
@@ -44,20 +57,34 @@ module.exports = (video, socket) => {
                         const vid = store.get(id)
                         vid.downloaded = true
                         store.set(id, vid)
-                        socket.emit("videos", Object.values(store.data))
+                        if (viaSocket) {
+                            socket.emit("videos", Object.values(store.data))
+                        }
                     }
                 })
                 console.log(`Downloading ${info.videoDetails.title}...`)
             })
         } catch (e) {
             console.log(e)
-            socket.emit("error", {
-                error: "Video not found",
-            })
+            if (viaSocket) {
+                socket.emit("error", {
+                    error: "Video not found",
+                })
+            } else {
+                res.status(404).json({
+                    error: "Video not found",
+                })
+            }
         }
     } else {
-        socket.emit("error", {
-            error: "Invalid URL!"
-        })
+        if (viaSocket) {
+            socket.emit("error", {
+                error: "Invalid URL!"
+            })
+        } else {
+            res.status(400).json({
+                error: "Invalid URL!"
+            })
+        }
     }
 }
