@@ -4,7 +4,7 @@ const store = require("data-store")({
 });
 const ytdl = require("ytdl-core")
 const fs = require("fs");
-
+const downloadImage = require("./DownloadImage")
 
 module.exports = (video, options = { viaSocket: false, express: false, req: null, res: null, socket: null }) => {
     const {
@@ -16,12 +16,26 @@ module.exports = (video, options = { viaSocket: false, express: false, req: null
     if (/(?:[?&]v=|\/embed\/|\/1\/|\/v\/|https:\/\/(?:www\.)?youtu\.be\/)([^&\n?#]+)/g.test(video)) {
         try {
             const dVideo = ytdl(video, { quality: "highest", filter: format => format.container === 'mp4' })
-            dVideo.on("info", info => {
+            dVideo.on("info", async info => {
                 const id = info.videoDetails.videoId
                 if (!fs.existsSync("./videos/")) {
                     fs.mkdirSync("./videos")
                 }
+                if (!fs.existsSync("./images/")) {
+                    fs.mkdirSync("./images")
+                }
+                await downloadImage(
+                    info.videoDetails.thumbnail.thumbnails[info.videoDetails.thumbnail.thumbnails.length - 1].url,
+                    id,
+                    'thumbnail'
+                )
+                await downloadImage(
+                    info.videoDetails.author.avatar,
+                    info.videoDetails.author.id,
+                    'avatar'
+                )
                 dVideo.pipe(fs.createWriteStream(`./videos/video_${id}.mp4`));
+                info.videoDetails.author.avatar = `/api/image/avatar/${info.videoDetails.author.id}`
                 store.set(id, {
                     id: id,
                     timestamp: new Date(),
@@ -30,7 +44,8 @@ module.exports = (video, options = { viaSocket: false, express: false, req: null
                     download_progress: 0,
                     title: info.videoDetails.title,
                     author: info.videoDetails.author,
-                    thumbnails: info.videoDetails.thumbnail.thumbnails
+                    thumbnails: info.videoDetails.thumbnail.thumbnails,
+                    thumbnail: `/api/image/thumbnail/${id}`
                 })
                 if (!viaSocket) {
                     res.json({
