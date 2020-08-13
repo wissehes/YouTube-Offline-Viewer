@@ -93,7 +93,12 @@
       </div>
     </v-container>
     <v-dialog v-model="videoDialog" width="800px">
-      <VideoPlayer v-if="showPlayer" :video="selectedVideo" height="100%" />
+      <VideoPlayer
+        v-if="showPlayer"
+        :video="selectedVideo"
+        height="100%"
+        :close="closeVideoDialog"
+      />
     </v-dialog>
     <v-snackbar v-model="snackbar" :color="snackbarError ? 'red' : 'primary'" :timeout="5000">
       {{ snackbarMessage }}
@@ -180,6 +185,9 @@ export default {
     },
     deleteVideo(id) {
       this.io.emit("delete", id);
+    },
+    closeVideoDialog() {
+      this.videoDialog = false;
     }
   }
 };

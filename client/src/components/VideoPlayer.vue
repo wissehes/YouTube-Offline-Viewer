@@ -10,6 +10,11 @@
         <v-list-item-title class="headline">{{ video.title }}</v-list-item-title>
         <v-list-item-subtitle>{{video.author.name}}</v-list-item-subtitle>
       </v-list-item-content>
+      <v-list-item-action>
+        <v-btn v-if="close" icon @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-list-item-action>
     </v-list-item>
     <VuePlyr class="video" :options="options" ref="player">
       <video :src="videoURL" :poster="poster"></video>
@@ -23,7 +28,8 @@ import axios from "axios";
 
 export default {
   props: {
-    video: Object
+    video: Object,
+    close: Function
   },
   data: () => ({
     options: {
