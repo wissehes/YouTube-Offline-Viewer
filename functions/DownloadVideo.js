@@ -5,19 +5,68 @@ const store = require("data-store")({
 const ytdl = require("ytdl-core")
 const fs = require("fs");
 const downloadImage = require("./DownloadImage")
+const ffmpeg = require('ffmpeg-static');
+const cp = require('child_process');
 
-module.exports = (video, options = { viaSocket: false, express: false, req: null, res: null, socket: null }) => {
+module.exports = (videoURL, options = { viaSocket: false, express: false, req: null, res: null, socket: null }) => {
     const {
         viaSocket,
         res,
         req,
         socket
     } = options
-    if (/(?:[?&]v=|\/embed\/|\/1\/|\/v\/|https:\/\/(?:www\.)?youtu\.be\/)([^&\n?#]+)/g.test(video)) {
-        if (ytdl.validateURL(video)) {
+    if (/(?:[?&]v=|\/embed\/|\/1\/|\/v\/|https:\/\/(?:www\.)?youtu\.be\/)([^&\n?#]+)/g.test(videoURL)) {
+        if (ytdl.validateURL(videoURL)) {
             try {
-                const dVideo = ytdl(video, { quality: "highest", filter: format => format.container === 'mp4' })
-                dVideo.on("info", async info => {
+                if (fs.existsSync(`./videos/${ytdl.getVideoID(videoURL)}.mp4`)) {
+                    fs.unlinkSync(`./videos/${ytdl.getVideoID(videoURL)}.mp4`)
+                }
+                console.log("starting")
+                const tracker = {
+                    start: Date.now(),
+                    audio: { downloaded: 0, total: Infinity },
+                    video: { downloaded: 0, total: Infinity },
+                    merged: { frame: 0, speed: '0x', fps: 0 },
+                };
+                // Get audio and video stream going
+                const audio = ytdl(videoURL, { quality: 'highestaudio' })
+                    .on('progress', (_, downloaded, total) => {
+                        tracker.audio = { downloaded, total };
+                    });
+                const video = ytdl(videoURL, { filter: 'videoonly', quality: 'highestvideo' })
+                    .on('progress', (_, downloaded, total) => {
+                        tracker.video = { downloaded, total };
+                    });
+
+                // Start the ffmpeg child process
+                const ffmpegProcess = cp.spawn(ffmpeg, [
+                    // Remove ffmpeg's console spamming
+                    '-loglevel', '0', '-hide_banner',
+                    // Redirect/enable progress messages
+                    '-progress', 'pipe:3',
+                    '-i', 'pipe:4',
+                    '-i', 'pipe:5',
+                    // Choose some fancy codes
+                    '-c:v', 'copy',
+                    '-c:a', 'aac',
+                    // overwrite output file it exists
+                    '-y',
+                    // Define output container
+                    `./videos/video_${ytdl.getVideoID(videoURL)}.mp4`,
+                ], {
+                    windowsHide: true,
+                    stdio: [
+                        /* Standard: stdin, stdout, stderr */
+                        'inherit', 'inherit', 'inherit',
+                        /* Custom: pipe:3, pipe:4, pipe:5, pipe:6 */
+                        'pipe', 'pipe', 'pipe', 'pipe',
+                    ],
+                });
+
+                audio.pipe(ffmpegProcess.stdio[4]);
+                video.pipe(ffmpegProcess.stdio[5]);
+
+                video.on("info", async info => {
                     const id = info.videoDetails.videoId
                     if (!fs.existsSync("./videos/")) {
                         fs.mkdirSync("./videos")
@@ -35,7 +84,7 @@ module.exports = (video, options = { viaSocket: false, express: false, req: null
                         info.videoDetails.author.id,
                         'avatar'
                     )
-                    dVideo.pipe(fs.createWriteStream(`./videos/video_${id}.mp4`));
+
                     info.videoDetails.author.avatar = `/api/image/avatar/${info.videoDetails.author.id}`
                     store.set(id, {
                         id: id,
@@ -54,20 +103,19 @@ module.exports = (video, options = { viaSocket: false, express: false, req: null
                             success: true
                         })
                     }
-                    let progress = 0;
-                    dVideo.on('progress', (chunkLength, downloaded, total) => {
-                        const percent = Math.round((downloaded / total) * 100)
-                        if (progress != percent) {
-                            progress = percent;
-                            console.log(`${(percent).toFixed(2)}% downloaded of ${info.videoDetails.title}`);
-                            store.load()
-                            store.set(`${id}.download_progress`, percent)
-                            if (viaSocket) {
-                                socket.emit("videos", Object.values(store.data))
-                            }
+                    ffmpegProcess.stdio[3].on('data', () => {
+                        const audioDownloaded = (tracker.audio.downloaded / tracker.audio.total) * 100
+                        const videoDownloaded = (tracker.video.downloaded / tracker.video.total) * 100
+                        const total = Math.round((videoDownloaded / 2) + (audioDownloaded / 2))
+
+                        console.log(`${(total).toFixed(2)}% downloaded of ${info.videoDetails.title}`);
+                        store.load()
+                        store.set(`${id}.download_progress`, total)
+                        if (viaSocket) {
+                            socket.emit("videos", Object.values(store.data))
                         }
                     });
-                    dVideo.on("end", _ => {
+                    ffmpegProcess.on("close", _ => {
                         store.load()
                         if (store.has(id)) {
                             const vid = store.get(id)
@@ -80,6 +128,7 @@ module.exports = (video, options = { viaSocket: false, express: false, req: null
                     })
                     console.log(`Downloading ${info.videoDetails.title}...`)
                 })
+
             } catch (e) {
                 console.log(e)
                 if (viaSocket) {
