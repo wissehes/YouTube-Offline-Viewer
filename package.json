@@ -13,6 +13,7 @@
     "body-parser": "^1.19.0",
     "data-store": "^4.0.3",
     "express": "^4.17.1",
+    "ffmpeg-static": "^4.2.6",
     "open": "^7.1.0",
     "socket.io": "^2.3.0",
     "ytdl-core": "^3.2.1"
