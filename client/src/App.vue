@@ -31,7 +31,7 @@ export default {
     if (localStorage.getItem("dark") == null) {
       localStorage.setItem("dark", false);
     } else {
-      this.$vuetify.theme.dark = localStorage.getItem("dark");
+      this.$vuetify.theme.dark = localStorage.getItem("dark") == "true";
     }
   }
 };
