@@ -36,7 +36,7 @@
         </v-container>
 
         <v-row>
-          <v-card v-if="videos == []" class="mx-auto" max-width="400">
+          <v-card v-if="!videos[0]" class="mx-auto" max-width="400">
             <v-card-title>No videos yet!</v-card-title>
           </v-card>
           <v-card
@@ -150,6 +150,11 @@ export default {
           this.showPlayer = false;
         }, 500);
       }
+    },
+    youTubeURL(v) {
+      if (v.trim() == "") {
+        this.$refs.form.resetValidation();
+      }
     }
   },
   components: {
@@ -179,7 +184,7 @@ export default {
         if (this.youTubeURL.trim() !== "") {
           this.io.emit("download", this.youTubeURL);
           this.showSnackbar("Started downloading video!");
-          this.youTubeURL = "";
+          this.$refs.form.reset();
         }
       }
     },
