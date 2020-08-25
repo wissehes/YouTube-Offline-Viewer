@@ -6,7 +6,7 @@
         <v-container fluid>
           <v-form ref="form">
             <v-row align="center" justify="center">
-              <v-col sm="8">
+              <v-col sm="7">
                 <v-textarea
                   prepend-icon="mdi-link"
                   label="YouTube URL"
@@ -39,56 +39,7 @@
           <v-card v-if="!videos[0]" class="mx-auto" max-width="400">
             <v-card-title>No videos yet!</v-card-title>
           </v-card>
-          <v-card
-            v-else
-            v-for="video in videos"
-            :key="video.id"
-            class="mx-auto mb-6"
-            max-width="400"
-            :loading="!video.downloaded"
-            :disabled="!video.downloaded"
-          >
-            <template v-slot:progress>
-              <v-progress-linear
-                :value="video.download_progress"
-                v-if="video.download_progress > 1"
-              ></v-progress-linear>
-              <v-progress-linear v-else indeterminate />
-            </template>
-            <v-list-item>
-              <v-list-item-avatar>
-                <v-avatar>
-                  <v-img :src="video.author.avatar"></v-img>
-                </v-avatar>
-              </v-list-item-avatar>
-              <v-list-item-content>
-                <v-list-item-title class="headline">{{ video.title }}</v-list-item-title>
-                <v-list-item-subtitle>{{video.author.name}}</v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-            <v-img
-              class="white--text align-end"
-              height="200px"
-              v-if="video.thumbnail"
-              :src="video.thumbnail"
-            ></v-img>
-            <v-img
-              class="white--text align-end"
-              height="200px"
-              v-else
-              :src="video.thumbnails[video.thumbnails.length - 1].url"
-            ></v-img>
-
-            <!-- <v-card-subtitle class="pb-0">size</v-card-subtitle> -->
-
-            <v-card-actions>
-              <v-btn color="orange" @click="playVideo(video)" text>Play</v-btn>
-              <v-spacer></v-spacer>
-              <v-btn class="mx-2" fab dark small color="error" @click="deleteVideo(video.id)">
-                <v-icon dark>mdi-close</v-icon>
-              </v-btn>
-            </v-card-actions>
-          </v-card>
+          <VideoCard v-else v-for="video in videos" :key="video.id" :video="video" />
         </v-row>
       </div>
     </v-container>
@@ -111,6 +62,7 @@
 
 <script>
 import VideoPlayer from "../components/VideoPlayer";
+import VideoCard from "../components/VideoCard";
 import io from "socket.io-client";
 
 export default {
@@ -140,6 +92,7 @@ export default {
       this.loading = false;
       this.videos = data.reverse();
     });
+    this.io.on("error", () => this.showSnackbar("An error occured!", true));
   },
   watch: {
     videoDialog(v) {
@@ -158,7 +111,8 @@ export default {
     }
   },
   components: {
-    VideoPlayer
+    VideoPlayer,
+    VideoCard
   },
   methods: {
     loadVideos() {
