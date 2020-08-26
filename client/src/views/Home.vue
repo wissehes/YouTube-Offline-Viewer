@@ -6,7 +6,7 @@
         <v-container fluid>
           <v-form ref="form">
             <v-row align="center" justify="center">
-              <v-col sm="7">
+              <!-- <v-col sm="7">
                 <v-textarea
                   prepend-icon="mdi-link"
                   label="YouTube URL"
@@ -19,6 +19,9 @@
               </v-col>
               <v-col>
                 <v-btn color="primary" @click="downloadVideo">Download</v-btn>
+              </v-col>-->
+              <v-col>
+                <v-btn color="primary" @click="downloadDialog = true">Download</v-btn>
               </v-col>
               <v-col>
                 <v-btn
@@ -39,7 +42,13 @@
           <v-card v-if="!videos[0]" class="mx-auto" max-width="400">
             <v-card-title>No videos yet!</v-card-title>
           </v-card>
-          <VideoCard v-else v-for="video in videos" :key="video.id" :video="video" />
+          <VideoCard
+            v-else
+            v-for="video in videos"
+            :key="video.id"
+            :video="video"
+            :playVideo="playVideo"
+          />
         </v-row>
       </div>
     </v-container>
@@ -50,6 +59,9 @@
         height="100%"
         :close="closeVideoDialog"
       />
+    </v-dialog>
+    <v-dialog v-model="downloadDialog" width="600px">
+      <DownloadVideo :downloadVideo="downloadVideo" />
     </v-dialog>
     <v-snackbar v-model="snackbar" :color="snackbarError ? 'red' : 'primary'" :timeout="5000">
       {{ snackbarMessage }}
@@ -63,6 +75,7 @@
 <script>
 import VideoPlayer from "../components/VideoPlayer";
 import VideoCard from "../components/VideoCard";
+import DownloadVideo from "../components/DownloadVideo";
 import io from "socket.io-client";
 
 export default {
@@ -71,16 +84,9 @@ export default {
     videos: [],
     selectedVideo: {},
     videoDialog: false,
+    downloadDialog: false,
     showPlayer: false,
     loading: true,
-    youTubeURL: "",
-    YTURLRules: [
-      v => !!v || "YouTube video is required!",
-      v =>
-        /(?:[?&]v=|\/embed\/|\/1\/|\/v\/|https:\/\/(?:www\.)?youtu\.be\/)([^&\n?#]+)/g.test(
-          v
-        ) || "Must be a valid YouTube URL!"
-    ],
     snackbar: false,
     snackbarMessage: "",
     snackbarError: false,
@@ -112,7 +118,8 @@ export default {
   },
   components: {
     VideoPlayer,
-    VideoCard
+    VideoCard,
+    DownloadVideo
   },
   methods: {
     loadVideos() {
