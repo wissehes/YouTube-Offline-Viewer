@@ -4,38 +4,22 @@
       <div v-if="loading"></div>
       <div v-else>
         <v-container fluid>
-          <v-form ref="form">
-            <v-row align="center" justify="center">
-              <!-- <v-col sm="7">
-                <v-textarea
-                  prepend-icon="mdi-link"
-                  label="YouTube URL"
-                  auto-grow
-                  rows="1"
-                  row-height="10"
-                  v-model="youTubeURL"
-                  :rules="YTURLRules"
-                ></v-textarea>
-              </v-col>
-              <v-col>
-                <v-btn color="primary" @click="downloadVideo">Download</v-btn>
-              </v-col>-->
-              <v-col>
-                <v-btn color="primary" @click="downloadDialog = true">Download</v-btn>
-              </v-col>
-              <v-col>
-                <v-btn
-                  :loading="loading"
-                  color="blue-grey"
-                  class="ma-2 white--text"
-                  fab
-                  @click="loadVideos"
-                >
-                  <v-icon dark>mdi-reload</v-icon>
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-form>
+          <v-row align="center" justify="center">
+            <v-col>
+              <v-btn color="primary" @click="downloadDialog = true">Download</v-btn>
+            </v-col>
+            <v-col>
+              <v-btn
+                :loading="loading"
+                color="blue-grey"
+                class="ma-2 white--text"
+                fab
+                @click="loadVideos"
+              >
+                <v-icon dark>mdi-reload</v-icon>
+              </v-btn>
+            </v-col>
+          </v-row>
         </v-container>
 
         <v-row>
@@ -140,13 +124,11 @@ export default {
       this.selectedVideo = v;
       this.videoDialog = true;
     },
-    downloadVideo() {
-      if (this.$refs.form.validate()) {
-        if (this.youTubeURL.trim() !== "") {
-          this.io.emit("download", this.youTubeURL);
-          this.showSnackbar("Started downloading video!");
-          this.$refs.form.reset();
-        }
+    downloadVideo(video) {
+      if (video.trim() !== "") {
+        this.io.emit("download", video);
+        this.showSnackbar("Started downloading video!");
+        return true;
       }
     },
     deleteVideo(id) {
