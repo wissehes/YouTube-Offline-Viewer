@@ -16,6 +16,7 @@
     "ffmpeg-static": "^4.2.6",
     "open": "^7.1.0",
     "socket.io": "^2.3.0",
+    "vue-debounce": "^2.5.7",
     "ytdl-core": "^3.2.1"
   }
 }
