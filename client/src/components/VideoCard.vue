@@ -3,8 +3,8 @@
     <v-card
       class="mx-auto mb-6"
       max-width="400"
-      :loading="!video.downloaded"
-      :disabled="!video.downloaded"
+      :loading="isVideoLoading"
+      :disabled="isVideoLoading"
     >
       <template v-slot:progress>
         <v-progress-linear :value="video.download_progress" v-if="video.download_progress > 1"></v-progress-linear>
@@ -36,7 +36,7 @@
 
       <!-- <v-card-subtitle class="pb-0">size</v-card-subtitle> -->
 
-      <v-card-actions>
+      <v-card-actions v-if="!preview">
         <v-btn color="orange" @click="playVideo(video)" text>Play</v-btn>
         <v-spacer></v-spacer>
         <v-btn class="mx-2" fab dark small color="error" @click="deleteVideo(video.id)">
@@ -50,7 +50,18 @@
 export default {
   props: {
     video: Object,
-    playVideo: Function
+    playVideo: Function,
+    preview: {
+      type: Boolean,
+      default: false
+    }
+  },
+  computed: {
+    isVideoLoading() {
+      if (this.preview == true) {
+        return false;
+      } else return !this.video.downloaded;
+    }
   }
 };
 </script>
