@@ -49,7 +49,8 @@
 <script>
 export default {
   props: {
-    video: Object
+    video: Object,
+    playVideo: Function
   }
 };
 </script>
