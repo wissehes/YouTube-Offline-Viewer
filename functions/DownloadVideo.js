@@ -87,6 +87,7 @@ module.exports = (videoURL, options = { viaSocket: false, express: false, req: n
 
                     info.videoDetails.author.avatar = `/api/image/avatar/${info.videoDetails.author.id}`
                     store.set(id, {
+                        type: `youtube`,
                         id: id,
                         timestamp: new Date(),
                         playing_progress: 0,
@@ -103,16 +104,19 @@ module.exports = (videoURL, options = { viaSocket: false, express: false, req: n
                             success: true
                         })
                     }
+                    let downloadProgressPercent = 0;
                     ffmpegProcess.stdio[3].on('data', () => {
                         const audioDownloaded = (tracker.audio.downloaded / tracker.audio.total) * 100
                         const videoDownloaded = (tracker.video.downloaded / tracker.video.total) * 100
                         const total = Math.round((videoDownloaded / 2) + (audioDownloaded / 2))
-
-                        console.log(`${(total).toFixed(2)}% downloaded of ${info.videoDetails.title}`);
-                        store.load()
-                        store.set(`${id}.download_progress`, total)
-                        if (viaSocket) {
-                            socket.emit("videos", Object.values(store.data))
+                        if (downloadProgressPercent != total) {
+                            downloadProgressPercent = total
+                            console.log(`${(total).toFixed(2)}% downloaded of ${info.videoDetails.title}`);
+                            store.load()
+                            store.set(`${id}.download_progress`, total)
+                            if (viaSocket) {
+                                socket.emit("videos", Object.values(store.data))
+                            }
                         }
                     });
                     ffmpegProcess.on("close", _ => {
